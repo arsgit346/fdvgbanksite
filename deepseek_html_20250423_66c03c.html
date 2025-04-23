@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyBank Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-button-color: #2481cc;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #2481cc, #2a9df4);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .chart-container {
+            height: 200px;
+            margin: 20px 0;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 16px;
+        }
+
+        .income { background: #e8f5e9; color: #2e7d32; }
+        .expense { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="balance-card">
+        <div style="font-size: 14px; margin-bottom: 8px;">Общий баланс</div>
+        <div style="font-size: 28px; font-weight: bold;">₸ 1,234,567</div>
+    </div>
+
+    <div class="quick-actions">
+        <button class="action-btn" onclick="handleAction('transfer')">
+            <span>➚ Перевод</span>
+        </button>
+        <button class="action-btn" onclick="handleAction('deposit')">
+            <span>⤵️ Пополнить</span>
+        </button>
+        <button class="action-btn" onclick="handleAction('qr')">
+            <span>🔲 QR-код</span>
+        </button>
+        <button class="action-btn" onclick="handleAction('history')">
+            <span>🕘 История</span>
+        </button>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="balanceChart"></canvas>
+    </div>
+
+    <h3>Последние операции</h3>
+    <div class="transaction-list" id="transactions"></div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.setText("Открыть полное приложение");
+        tg.MainButton.show();
+
+        // Данные транзакций
+        const transactions = [
+            { type: 'income', amount: 250000, date: '2023-09-20', description: 'Зарплата' },
+            { type: 'expense', amount: 15000, date: '2023-09-19', description: 'Онлайн магазин' },
+            { type: 'expense', amount: 5000, date: '2023-09-18', description: 'Кафе' },
+            { type: 'income', amount: 100000, date: '2023-09-17', description: 'Фриланс' }
+        ];
+
+        // Инициализация графика
+        new Chart(document.getElementById('balanceChart'), {
+            type: 'line',
+            data: {
+                labels: ['Сен 1', 'Сен 5', 'Сен 10', 'Сен 15', 'Сен 20'],
+                datasets: [{
+                    label: 'Баланс',
+                    data: [80000, 120000, 90000, 150000, 1234567],
+                    borderColor: '#2481cc',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Отображение транзакций
+        function renderTransactions() {
+            const container = document.getElementById('transactions');
+            container.innerHTML = transactions.map(transaction => `
+                <div class="transaction-item">
+                    <div class="icon ${transaction.type}">
+                        ${transaction.type === 'income' ? '⬇️' : '⬆️'}
+                    </div>
+                    <div style="flex: 1">
+                        <div>${transaction.description}</div>
+                        <div style="font-size: 12px; color: #666">${transaction.date}</div>
+                    </div>
+                    <div style="color: ${transaction.type === 'income' ? '#2e7d32' : '#c62828'}">
+                        ${transaction.type === 'income' ? '+' : '-'}₸${transaction.amount}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleAction(type) {
+            tg.showPopup({
+                title: 'Подтверждение',
+                message: `Вы действительно хотите выполнить "${type}"?`,
+                buttons: [
+                    { id: 'confirm', type: 'ok' },
+                    { id: 'cancel', type: 'cancel' }
+                ]
+            }, (buttonId) => {
+                if(buttonId === 'confirm') {
+                    tg.showAlert('Операция выполнена успешно!');
+                }
+            });
+        }
+
+        // Инициализация приложения
+        tg.ready();
+        renderTransactions();
+    </script>
+</body>
+</html>
