@@ -144,10 +144,10 @@
         tg.MainButton.show();
 
         const transactions = [
-            { type: 'income', amount: 250000, date: '2023-09-20', description: 'Зарплата' },
-            { type: 'expense', amount: 18000, date: '2023-09-19', description: 'Покупка продуктов' },
-            { type: 'expense', amount: 3000, date: '2023-09-18', description: 'Кофейня' },
-            { type: 'income', amount: 100000, date: '2023-09-17', description: 'Фриланс проект' },
+            { type: 'income', amount: 100, date: '2023-09-20', description: 'Зарплата' },
+            { type: 'expense', amount: 50, date: '2023-09-19', description: 'Покупка продуктов' },
+            { type: 'expense', amount: 10, date: '2023-09-18', description: 'Кофейня' },
+            { type: 'income', amount: 10, date: '2023-09-17', description: 'Фриланс проект' },
         ];
 
         new Chart(document.getElementById('balanceChart'), {
@@ -184,7 +184,7 @@
                         <div style="font-size: 12px; color: #888">${tx.date}</div>
                     </div>
                     <div style="font-weight: 600; color: ${tx.type === 'income' ? '#34a853' : '#d93025'}">
-                        ${tx.type === 'income' ? '+' : '-'}₸${tx.amount.toLocaleString('ru-RU')}
+                        ${tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString('ru-RU')}
                     </div>
                 </div>
             `).join('');
